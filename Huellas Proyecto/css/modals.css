@@ -1,0 +1,160 @@
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(20, 45, 28, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 500;
+}
+
+.modal-card {
+  background: var(--white);
+  border-radius: 24px;
+  padding: 32px 36px;
+  width: 100%;
+  max-width: 720px;
+  position: relative;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.auth-card {
+  max-width: 440px;
+}
+
+.modal-close {
+  position: absolute;
+  top: 16px;
+  right: 20px;
+  background: none;
+  border: none;
+  font-size: 1.6rem;
+  cursor: pointer;
+}
+
+.modal-title-center {
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 1.35rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  padding: 10px 14px;
+  border: 1.5px solid #444;
+  border-radius: 14px;
+  font-size: 0.92rem;
+}
+
+.form-inline-pair {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.form-inline-pair input {
+  flex: 1;
+  padding: 6px 12px;
+  border: 1.5px solid #444;
+  border-radius: 14px;
+}
+
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0 18px;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.auth-switch {
+  text-align: center;
+  margin-top: 14px;
+  font-size: 0.88rem;
+}
+
+.detail-grid,
+.adopt-form-grid {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.pet-detail-title {
+  font-size: 1.8rem;
+  margin-bottom: 12px;
+}
+
+.detail-left p {
+  margin-bottom: 8px;
+  font-size: 0.95rem;
+}
+
+.detail-block {
+  margin-top: 14px;
+}
+
+.detail-right {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.detail-pet-img,
+.image-upload-preview img {
+  width: 170px;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 14px;
+  margin-bottom: 14px;
+  border: 1px solid #ddd;
+}
+
+.detail-vaccines p {
+  margin-top: 6px;
+  font-size: 0.9rem;
+  white-space: pre-line;
+}
+
+.info-pair {
+  margin-bottom: 16px;
+}
+
+.info-pair p {
+  margin-top: 4px;
+  color: #333;
+}
+
+.modal-actions-center {
+  display: flex;
+  justify-content: center;
+}
+
+.modal-actions-spread {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 18px;
+}
+
+@media (max-width: 768px) {
+  .detail-grid,
+  .adopt-form-grid {
+    grid-template-columns: 1fr;
+  }
+}

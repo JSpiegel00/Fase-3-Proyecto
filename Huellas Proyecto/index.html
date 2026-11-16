@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Huellas Panamá - Centro de Adopción</title>
+  <link rel="stylesheet" href="css/global.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/modals.css" />
+</head>
+<body>
+  <!-- BARRA SUPERIOR -->
+  <header class="topbar">
+    <div class="brand-area" onclick="navigateTo('inicio')">
+      <span class="brand-title">HUELLAS PANAMÁ</span>
+      <span id="roleBadge" class="role-badge">Vista: Cliente</span>
+    </div>
+
+    <div class="user-controls">
+      <!-- Selector de vista rápido para el Frontend -->
+      <div class="user-trigger" onclick="toggleUserDropdown()">
+        <div class="avatar-circle">
+          <svg viewBox="0 0 24 24" width="28" height="28" fill="#ffffff">
+            <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/>
+          </svg>
+        </div>
+        <span id="topUserLabel" class="user-trigger-text">CLIENTE</span>
+      </div>
+
+      <div id="userDropdown" class="user-dropdown hidden">
+        <p class="quick-switch-label">Cambiar interfaz de rol (UI):</p>
+        <button onclick="setPreviewRole('guest')">Sin Sesión (Invitado)</button>
+        <button onclick="setPreviewRole('cliente')">Vista Cliente / Adoptante</button>
+        <button onclick="setPreviewRole('colaborador')">Vista Colaborador</button>
+        <button onclick="setPreviewRole('administrador')">Vista Administrador</button>
+        <hr />
+        <button onclick="openAuthModal('login')">Iniciar Sesión</button>
+        <button onclick="openAuthModal('register')">Registrarse</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- LAYOUT PRINCIPAL -->
+  <div class="main-layout">
+    <aside class="sidebar">
+      <nav class="sidebar-nav">
+        <button class="nav-item active" data-view="inicio" onclick="navigateTo('inicio')">INICIO</button>
+        <div class="nav-divider"></div>
+        <button class="nav-item" data-view="mascotas" onclick="navigateTo('mascotas')">LISTA DE MASCOTAS</button>
+        <div class="nav-divider"></div>
+        <button class="nav-item" data-view="solicitudes" onclick="navigateTo('solicitudes')">SOLICITUD DE ADOPCIÓN</button>
+        <div class="nav-divider"></div>
+        <button id="navAdminRoles" class="nav-item hidden" data-view="roles" onclick="navigateTo('roles')">GESTIÓN DE ROLES</button>
+        <div id="dividerAdminRoles" class="nav-divider hidden"></div>
+        <button class="nav-item" data-view="soporte" onclick="navigateTo('soporte')">SOPORTE / CONTÁCTANOS</button>
+      </nav>
+    </aside>
+
+    <!-- CONTENEDOR DE VISTAS -->
+    <main id="appContent" class="content-area"></main>
+  </div>
+
+  <!-- PIE DE PÁGINA -->
+  <footer class="footer">
+    <button onclick="navigateTo('inicio')">INICIO</button>
+    <span>|</span>
+    <button onclick="navigateTo('mascotas')">LISTA DE MASCOTAS</button>
+    <span>|</span>
+    <button onclick="navigateTo('solicitudes')">SOLICITUD DE ADOPCIÓN</button>
+    <span>|</span>
+    <button onclick="navigateTo('soporte')">SOPORTE/CONTÁCTANOS</button>
+  </footer>
+
+  <!-- ================= PLANTILLAS DE VISTAS (INCRUSTADAS PARA EVITAR CORS) ================= -->
+  <template id="view-inicio">
+    <section class="view-section">
+      <div class="pill-header">
+        <h1>MASCOTAS QUE PODRÍAN INTERESARTE</h1>
+      </div>
+      <div id="featuredPetsGrid" class="pets-grid"></div>
+    </section>
+  </template>
+
+  <template id="view-mascotas">
+    <section class="view-section">
+      <div class="section-top-bar">
+        <div class="pill-header">
+          <h1>LISTA DE MASCOTAS</h1>
+        </div>
+        <button id="btnOpenAddPet" class="btn-mint-pill hidden" onclick="openPetFormModal()">
+          Agregar Mascota
+        </button>
+      </div>
+      <div id="allPetsGrid" class="pets-grid"></div>
+    </section>
+  </template>
+
+  <template id="view-solicitudes">
+    <section class="view-section">
+      <div class="pill-header">
+        <h1>SOLICITUDES DE ADOPCIÓN</h1>
+      </div>
+      <div class="requests-board">
+        <div class="requests-list" id="requestsList"></div>
+      </div>
+    </section>
+  </template>
+
+  <template id="view-roles">
+    <section class="view-section">
+      <div class="pill-header">
+        <h1>ASIGNACIÓN DE ROLES</h1>
+      </div>
+      <div class="admin-panel-card">
+        <div class="table-responsive">
+          <table class="roles-table">
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Correo Electrónico</th>
+                <th>Rol</th>
+              </tr>
+            </thead>
+            <tbody id="usersRolesTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </template>
+
+  <template id="view-soporte">
+    <section class="view-section">
+      <h1 class="support-title">SOPORTE / CONTÁCTANOS</h1>
+      <h2 class="support-subtitle">Integrantes del Grupo</h2>
+      <div class="team-grid">
+        <div class="team-card">
+          <div class="team-photo-placeholder">
+            <svg viewBox="0 0 24 24" width="36" height="36" fill="#5b6b82">
+              <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+            </svg>
+          </div>
+          <h3>Ariel Esturain</h3>
+          <p>8-1023-902 — Licenciatura en Ingeniería de Software, Grupo 1SF-133.</p>
+        </div>
+        <div class="team-card">
+          <div class="team-photo-placeholder">
+            <svg viewBox="0 0 24 24" width="36" height="36" fill="#5b6b82">
+              <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+            </svg>
+          </div>
+          <h3>Juan Diego Spiegel</h3>
+          <p>9-767-1734 — Licenciatura en Ingeniería de Software, Grupo 1SF-133.</p>
+        </div>
+        <div class="team-card">
+          <div class="team-photo-placeholder">
+            <svg viewBox="0 0 24 24" width="36" height="36" fill="#5b6b82">
+              <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+            </svg>
+          </div>
+          <h3>Marvin Rodríguez & Derald Castillo</h3>
+          <p>8-1030-1040 & 8-1029-839 — Grupo 1SF-133.</p>
+        </div>
+      </div>
+    </section>
+  </template>
+
+  <!-- ================= MODALES DE INTERFAZ (UI) ================= -->
+
+  <!-- MODAL LOGIN / REGISTRO -->
+  <div id="authModal" class="modal-backdrop hidden">
+    <div class="modal-card auth-card">
+      <button class="modal-close" onclick="closeModal('authModal')">&times;</button>
+      <form id="loginForm" onsubmit="event.preventDefault(); simulateAuth('login');">
+        <h2 class="modal-title-center">Inicio de Sesión</h2>
+        <div class="form-group">
+          <label for="loginEmail">Nombre o Correo</label>
+          <input type="text" id="loginEmail" placeholder="Ingresa tu usuario" value="cliente@utp.ac.pa" />
+        </div>
+        <div class="form-group">
+          <label for="loginPassword">Contraseña</label>
+          <input type="password" id="loginPassword" placeholder="••••••••" value="123456" />
+        </div>
+        <div class="modal-actions-center">
+          <button type="submit" class="btn-mint-pill">INICIAR SESIÓN</button>
+        </div>
+        <p class="auth-switch">¿No tienes cuenta? <a href="#" onclick="switchAuthMode('register')">Regístrate</a></p>
+      </form>
+
+      <form id="registerForm" class="hidden" onsubmit="event.preventDefault(); simulateAuth('register');">
+        <h2 class="modal-title-center">REGISTRO DE USUARIOS</h2>
+        <div class="form-group">
+          <label for="regName">Nombre:</label>
+          <input type="text" id="regName" placeholder="Tu nombre completo" />
+        </div>
+        <div class="form-group">
+          <label for="regEmail">Correo electrónico</label>
+          <input type="email" id="regEmail" placeholder="correo@utp.ac.pa" />
+        </div>
+        <div class="form-group">
+          <label for="regPass">Contraseña</label>
+          <input type="password" id="regPass" placeholder="••••••••" />
+        </div>
+        <div class="form-group">
+          <label for="regPassConfirm">Repetir contraseña</label>
+          <input type="password" id="regPassConfirm" placeholder="••••••••" />
+        </div>
+        <div class="checkbox-row">
+          <input type="checkbox" id="regTerms" checked />
+          <label for="regTerms">ACEPTA LOS TÉRMINOS Y CONDICIONES</label>
+        </div>
+        <div class="modal-actions-center">
+          <button type="submit" class="btn-mint-pill">REGISTRAR</button>
+        </div>
+        <p class="auth-switch">¿Ya tienes cuenta? <a href="#" onclick="switchAuthMode('login')">Inicia sesión</a></p>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL DETALLE DE MASCOTA -->
+  <div id="petDetailModal" class="modal-backdrop hidden">
+    <div class="modal-card detail-card">
+      <button class="modal-close" onclick="closeModal('petDetailModal')">&times;</button>
+      <div class="detail-grid">
+        <div class="detail-left">
+          <h2 id="detailName" class="pet-detail-title"></h2>
+          <p><strong>Raza:</strong> <span id="detailBreed"></span></p>
+          <p><strong>Edad:</strong> <span id="detailAge"></span></p>
+          <div class="detail-block">
+            <strong>Personalidad:</strong>
+            <p id="detailPersonality"></p>
+          </div>
+          <div class="detail-block">
+            <strong>Cuidados:</strong>
+            <p id="detailCare"></p>
+          </div>
+        </div>
+        <div class="detail-right">
+          <img id="detailImage" src="" alt="Foto mascota" class="detail-pet-img" />
+          <div class="detail-vaccines">
+            <strong>Vacunas presentes</strong>
+            <p id="detailVaccines"></p>
+          </div>
+        </div>
+      </div>
+      <div id="detailActions" class="modal-actions-spread"></div>
+    </div>
+  </div>
+
+  <!-- MODAL FORMULARIO AGREGAR / MODIFICAR MASCOTA -->
+  <div id="petFormModal" class="modal-backdrop hidden">
+    <div class="modal-card detail-card">
+      <button class="modal-close" onclick="closeModal('petFormModal')">&times;</button>
+      <form onsubmit="event.preventDefault(); savePetForm();">
+        <div class="detail-grid">
+          <div class="detail-left">
+            <div class="form-group">
+              <label><strong>Nombre:</strong></label>
+              <input type="text" id="petNameInput" required />
+            </div>
+            <div class="form-inline-pair">
+              <label><strong>Raza:</strong></label>
+              <input type="text" id="petBreedInput" required />
+            </div>
+            <div class="form-inline-pair">
+              <label><strong>Edad:</strong></label>
+              <input type="text" id="petAgeInput" required />
+            </div>
+            <div class="form-group">
+              <label><strong>Personalidad:</strong></label>
+              <input type="text" id="petPersonalityInput" required />
+            </div>
+            <div class="form-group">
+              <label><strong>Cuidados:</strong></label>
+              <input type="text" id="petCareInput" required />
+            </div>
+          </div>
+          <div class="detail-right">
+            <div class="image-upload-preview">
+              <img id="petPreviewImg" src="https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=400&q=80" alt="Vista previa" />
+            </div>
+            <div class="form-group">
+              <label><strong>Vacunas presentes</strong></label>
+              <textarea id="petVaccinesInput" rows="3"></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="modal-actions-spread">
+          <button type="button" class="btn-mint-pill" onclick="closeModal('petFormModal')">Regresar</button>
+          <button type="submit" id="petFormSubmitBtn" class="btn-mint-pill">Agregar Mascota</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL FORMULARIO SOLICITUD DE ADOPCIÓN (CLIENTE) -->
+  <div id="adoptFormModal" class="modal-backdrop hidden">
+    <div class="modal-card detail-card">
+      <button class="modal-close" onclick="closeModal('adoptFormModal')">&times;</button>
+      <form onsubmit="event.preventDefault(); submitAdoptForm();">
+        <h2 class="modal-title-center" id="adoptModalTitle">Solicitud de Adopción</h2>
+        <div class="adopt-form-grid">
+          <div class="adopt-col">
+            <div class="form-group">
+              <label><strong>Nombre completo</strong></label>
+              <input type="text" id="adoptFullName" value="Ariel Esturain" required />
+            </div>
+            <div class="form-group">
+              <label><strong>Lugar de residencia</strong></label>
+              <select id="adoptResidence" required>
+                <option value="">Seleccione...</option>
+                <option selected>Punta Pacífica</option>
+                <option>San Miguelito</option>
+                <option>Costa del Este</option>
+                <option>Arraiján</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label><strong>Tiempo disponible/libre a la semana</strong></label>
+              <select id="adoptTime" required>
+                <option value="">Seleccione...</option>
+                <option>6 Horas</option>
+                <option>12 Horas</option>
+                <option selected>20 Horas</option>
+              </select>
+            </div>
+          </div>
+          <div class="adopt-col">
+            <div class="form-group">
+              <label><strong>Tipo de vivienda</strong></label>
+              <select id="adoptHousing" required>
+                <option value="">Seleccione...</option>
+                <option>Casa</option>
+                <option selected>Apartamento</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label><strong>Información complementaria del porqué lo desea adoptar</strong></label>
+              <textarea id="adoptReason" rows="5" required>Me encanta la mascota y tengo un hogar adecuado para darle mucho amor y cuidados diarios.</textarea>
+            </div>
+          </div>
+        </div>
+        <div class="modal-actions-spread">
+          <button type="button" class="btn-mint-pill" onclick="closeModal('adoptFormModal')">Cancelar</button>
+          <button type="submit" class="btn-mint-pill">Enviar solicitud de adopción</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL DETALLE DE SOLICITUD (COLABORADOR / ADMIN) -->
+  <div id="requestDetailModal" class="modal-backdrop hidden">
+    <div class="modal-card detail-card">
+      <button class="modal-close" onclick="closeModal('requestDetailModal')">&times;</button>
+      <h2 class="modal-title-center">Detalle de Solicitud</h2>
+      <div class="adopt-form-grid">
+        <div class="adopt-col">
+          <div class="info-pair"><strong>Nombre completo</strong><p id="viewReqName"></p></div>
+          <div class="info-pair"><strong>Mascota solicitada</strong><p id="viewReqPet"></p></div>
+          <div class="info-pair"><strong>Lugar de residencia</strong><p id="viewReqResidence"></p></div>
+          <div class="info-pair"><strong>Tiempo disponible/libre a la semana</strong><p id="viewReqTime"></p></div>
+        </div>
+        <div class="adopt-col">
+          <div class="info-pair"><strong>Tipo de vivienda</strong><p id="viewReqHousing"></p></div>
+          <div class="info-pair"><strong>Motivo de adopción</strong><p id="viewReqReason"></p></div>
+        </div>
+      </div>
+      <div class="modal-actions-spread">
+        <button class="btn-mint-pill" onclick="closeModal('requestDetailModal')">Regresar</button>
+        <button class="btn-mint-pill" style="background-color: #a8e6cf;" onclick="handleRequestAction('aceptar')">Aceptar solicitud</button>
+        <button class="btn-mint-pill" style="background-color: #ffb3ba;" onclick="handleRequestAction('rechazar')">Rechazar solicitud</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/mock-data.js"></script>
+  <script src="js/ui.js"></script>
+</body>
+</html>
